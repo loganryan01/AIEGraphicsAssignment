@@ -33,12 +33,23 @@ void Mesh::InitialiseQuad()
 	vertices[4].position = { 0.5f,  0.f, 0.5f,  1.f };
 	vertices[5].position = { 0.5f,  0.f, -0.5f, 1.f };
 
+	vertices[0].normal =  { 0, 1, 0, 0};
+	vertices[1].normal =  { 0, 1, 0, 0};
+	vertices[2].normal =  { 0, 1, 0, 0};
+	vertices[3].normal =  { 0, 1, 0, 0};
+	vertices[4].normal =  { 0, 1, 0, 0};
+	vertices[5].normal =  { 0, 1, 0, 0};
+
 	// Fill the vertex buffer
 	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
 	// Enable the first element as a position
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+
+	// Enable the second element as a normal
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)16);
 
 	// Unbind the buffers
 	glBindVertexArray(0);
