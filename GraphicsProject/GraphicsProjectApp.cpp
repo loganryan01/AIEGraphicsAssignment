@@ -42,7 +42,8 @@ bool GraphicsProjectApp::startup() {
 	m_light.direction = { 0, 0, 0 };
 	m_ambientLight = { 0.25f, 0.25f , 0.25f };
 
-	m_lucyRotation = { 0, 0, 0 };
+	m_lucyRotationAxis = { 1, 0, 0 };
+	m_lucyRotationAngle = 0;
 	m_lucyPosition = { 0,0,0 };
 	m_lucyScale = 0.5f;
 
@@ -78,25 +79,28 @@ void GraphicsProjectApp::update(float deltaTime) {
 
 	IMGUI_Logic();
 
-	/*float time = getTime();
+	float time = getTime();
 
 	m_light.direction = glm::normalize(glm::vec3(glm::cos(time * 2), 
 												 glm::sin(time * 2),
-												 0));*/
+												 0));
 
-	// Rotate Lucy
-	float xRot = (m_lucyRotation.x * M_PI) / 180;
-	float yRot = (m_lucyRotation.y * M_PI) / 180;
-	float zRot = (m_lucyRotation.z * M_PI) / 180;
-	glm::vec3 eulerAngles(m_lucyPosition.x, m_lucyRotation.y, m_lucyRotation.z);
-	glm::quat lucyQuaternion = glm::quat(eulerAngles);
-	lucyQuaternion = glm::angleAxis(glm::degrees(xRot), glm::vec3(1.f, 0, 0));
-	glm::mat4 rotationMatrix = glm::toMat4(lucyQuaternion);
+	// Control Lucy Transform
 
+	// Change Lucy's rotation
+	float radians = m_lucyRotationAngle * M_PI / 180;
+
+	glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), 
+										   radians, 
+										   m_lucyRotationAxis);
+
+	// Change Lucy's scale
 	glm::mat4 scalingMatrix = glm::scale(glm::vec3(m_lucyScale));
 
+	// Change Lucy's position
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.f), m_lucyPosition);
 
+	// Add the matricies together to get the new transform
 	glm::mat4 newTransform = translationMatrix * rotationMatrix * scalingMatrix;
 	m_lucyTransform = newTransform;
 
@@ -122,129 +126,173 @@ void GraphicsProjectApp::draw() {
 	DrawShaderAndMeshes(projectionMatrix, viewMatrix);
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
-	
 }
 
 bool GraphicsProjectApp::LoadShaderAndMeshLogic()
 {
-#pragma region Quad
-	// Load the vertex shader from a file
-	m_simpleShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
+#pragma region LoadShader
+	#pragma region Quad
+		// Load the vertex shader from a file
+		m_simpleShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
 
-	// Load the fragment shader from a file
-	m_simpleShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
-	if (!m_simpleShader.link())
-	{
-		printf("Simple Shader had an error: %s\n", m_simpleShader.getLastError());
-		return false;
-	}
+		// Load the fragment shader from a file
+		m_simpleShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
 
-	// Define the 6 vertices for the 2 triangles that make the quad
-	/*Mesh::Vertex vertices[6];
-	vertices[0].position = { -0.5f, 0.f, 0.5f,  1.f };
-	vertices[1].position = { 0.5f,  0.f, 0.5f,  1.f };
-	vertices[2].position = { -0.5f, 0.f, -0.5f, 1.f };
+		if (!m_simpleShader.link())
+		{
+			printf("Simple Shader had an error: %s\n", m_simpleShader.getLastError());
+			return false;
+		}
+	#pragma endregion
 
-	vertices[3].position = { -0.5f, 0.f, -0.5f, 1.f };
-	vertices[4].position = { 0.5f,  0.f, 0.5f,  1.f };
-	vertices[5].position = { 0.5f,  0.f, -0.5f, 1.f };*/
+	#pragma region Bunny
+		// Load the vertex shader from a file
+		m_bunnyShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
 
-	Mesh::Vertex vertices[4];
-	vertices[0].position = { -0.5f, 0.f, 0.5f,  1.f };
-	vertices[1].position = { 0.5f,  0.f, 0.5f,  1.f };
-	vertices[2].position = { -0.5f, 0.f, -0.5f, 1.f };
-	vertices[3].position = { 0.5f,  0.f, -0.5f, 1.f };
+		// Load the fragment shader from a file
+		m_bunnyShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
+		if (!m_bunnyShader.link())
+		{
+			printf("Bunny Shader had an error: %s\n", m_bunnyShader.getLastError());
+			return false;
+		}
+	#pragma endregion
 
-	unsigned int indices[6] = { 0,1,2,2,1,3 };
+	#pragma region Dragon
+		// Load the vertex shader from a file
+		m_dragonShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
 
-	m_quadMesh.Initialise(4, vertices, 6, indices);
+		// Load the fragment shader from a file
+		m_dragonShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
+		if (!m_dragonShader.link())
+		{
+			printf("Dragon Shader had an error: %s\n", m_dragonShader.getLastError());
+			return false;
+		}
+	#pragma endregion
 
-	// We will make the quad 10 units by 10 units
-	m_quadTransform = {
-		10,0,0,0,
-		0,10,0,0,
-		0,0,10,0,
-		0,0,0,1
-	};
+	#pragma region TextureShader
+		// Get Shader
+		m_textureShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/textured.vert");
+		m_textureShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/textured.frag");
 
-	double angleX = 90 * M_PI / 180.0;
-	glm::mat4 rotationX = {
-		1, 0,			 0,			  0,
-		0, cos(angleX),  sin(angleX), 0,
-		0, -sin(angleX), cos(angleX), 0,
-		0, 0,			 0,           1
-	};
+		if (m_textureShader.link() == false)
+		{
+			printf("Texture Shader had an error: %s\n", m_textureShader.getLastError());
+			return false;
+		}
+	#pragma endregion
 
-	double angleY = 45 * M_PI / 180.0;
-	glm::mat4 rotationY = {
-		cos(angleY), 0, -sin(angleY), 0,
-		0,			 1, 0,			  0,
-		sin(angleY), 0, cos(angleY),  0,
-		0,			 0,0,1
-	};
-
-	double angleZ = 90 * M_PI / 180.0;
-	glm::mat4 rotationZ = {
-		cos(angleZ), -sin(angleZ), 0, 0,
-		sin(angleZ), cos(angleZ),  0, 0,
-		0,			 0,			   1, 0,
-		0,			 0,			   0, 1
-	};
-
-	/*m_quadTransform *= rotationY;
-	m_quadTransform *= rotationX;*/
-	//m_quadTransform *= rotationZ;
-	
-#pragma endregion
-	
-#pragma region FlatBunny
-	// Load the vertex shader from a file
-	m_bunnyShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
-
-	// Load the fragment shader from a file
-	m_bunnyShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
-	if (!m_bunnyShader.link())
-	{
-		printf("Bunny Shader had an error: %s\n", m_bunnyShader.getLastError());
-		return false;
-	}
-
-	if (m_bunnyMesh.load("./stanford/bunny.obj") == false)
-	{
-		printf("Bunny Mesh Failed!\n");
-	}
-
-	m_bunnyTransform = {
-		0.5f, 0,	0,	  0,
-		0,	  0.5f, 0,	  0,
-		0,	  0,	0.5f, 0,
-		0,	  0,	0,    1
-	};
+	#pragma region Phong
+		m_phongShader.loadShader(aie::eShaderStage::VERTEX,
+			"./shaders/phong.vert");
+		m_phongShader.loadShader(aie::eShaderStage::FRAGMENT,
+			"./shaders/phong.frag");
+		if (m_phongShader.link() == false)
+		{
+			printf("Phong Shader had an error: %s\n", m_phongShader.getLastError());
+			return false;
+		}
+	#pragma endregion
 #pragma endregion
 
-#pragma region FlatDragon
-	// Load the vertex shader from a file
-	m_dragonShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
+#pragma region MeshLogic
+	#pragma region Quad
+		Mesh::Vertex vertices[4];
+		vertices[0].position = { -0.5f, 0.f, 0.5f,  1.f };
+		vertices[1].position = { 0.5f,  0.f, 0.5f,  1.f };
+		vertices[2].position = { -0.5f, 0.f, -0.5f, 1.f };
+		vertices[3].position = { 0.5f,  0.f, -0.5f, 1.f };
 
-	// Load the fragment shader from a file
-	m_dragonShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
-	if (!m_dragonShader.link())
-	{
-		printf("Dragon Shader had an error: %s\n", m_dragonShader.getLastError());
-		return false;
-	}
+		unsigned int indices[6] = { 0,1,2,2,1,3 };
 
-	if (m_dragonMesh.load("./stanford/dragon.obj") == false)
-	{
-		printf("Dragon Mesh Failed!\n");
-	}
+		m_quadMesh.InitialiseQuad();
 
-	m_dragonTransform = {
-		0.5f, 0,	0,	  0,
-		0,	  0.5f, 0,	  0,
-		0,	  0,	0.5f, 0,
-		0,	  0,	0,    1
-	};
+		// We will make the quad 10 units by 10 units
+		m_quadTransform = {
+			10,0,0,0,
+			0,10,0,0,
+			0,0,10,0,
+			0,0,0,1
+		};
+
+		double angleX = 90 * M_PI / 180.0;
+		glm::mat4 rotationX = {
+			1, 0,			 0,			  0,
+			0, cos(angleX),  sin(angleX), 0,
+			0, -sin(angleX), cos(angleX), 0,
+			0, 0,			 0,           1
+		};
+
+		double angleY = 45 * M_PI / 180.0;
+		glm::mat4 rotationY = {
+			cos(angleY), 0, -sin(angleY), 0,
+			0,			 1, 0,			  0,
+			sin(angleY), 0, cos(angleY),  0,
+			0,			 0,0,1
+		};
+
+		double angleZ = 90 * M_PI / 180.0;
+		glm::mat4 rotationZ = {
+			cos(angleZ), -sin(angleZ), 0, 0,
+			sin(angleZ), cos(angleZ),  0, 0,
+			0,			 0,			   1, 0,
+			0,			 0,			   0, 1
+		};
+
+		/*m_quadTransform *= rotationY;
+		m_quadTransform *= rotationX;
+		m_quadTransform *= rotationZ;*/
+
+	#pragma endregion
+
+	#pragma region Bunny
+		if (m_bunnyMesh.load("./stanford/bunny.obj") == false)
+		{
+			printf("Bunny Mesh Failed!\n");
+		}
+
+		m_bunnyTransform = {
+			0.5f, 0,	0,	  0,
+			0,	  0.5f, 0,	  0,
+			0,	  0,	0.5f, 0,
+			0,	  0,	0,    1
+		};
+	#pragma endregion
+
+	#pragma region Dragon
+		if (m_dragonMesh.load("./stanford/dragon.obj") == false)
+		{
+			printf("Dragon Mesh Failed!\n");
+		}
+
+		m_dragonTransform = {
+			0.5f, 0,	0,	  0,
+			0,	  0.5f, 0,	  0,
+			0,	  0,	0.5f, 0,
+			0,	  0,	0,    1
+		};
+	#pragma endregion
+
+	#pragma region InfinityBlade
+		if (m_infinityMesh.load("./infinityblade/infinityblade.obj", true, true) == false)
+		{
+			printf("Infinity Blade Mesh Failed!\n");
+		}
+
+		if (m_bladeTexture.load("./infinityblade/lambert1_albedo.tga") == false)
+		{
+			printf("Failed to load: lambert1_albedo.tga\n");
+			return false;
+		}
+
+		m_infinityTransform = {
+			0.5f, 0,	0,	  0,
+			0,	  0.5f, 0,	  0,
+			0,	  0,	0.5f, 0,
+			0,	  0,	0,    1
+		};
+	#pragma endregion
 #pragma endregion
 
 #pragma region FlatBuddha
@@ -296,19 +344,48 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic()
 		0,	  0,	0,    1
 	};
 #pragma endregion
+	
+#pragma region TextureShader
+	
 
-#pragma region Phong
-	m_phongShader.loadShader(aie::eShaderStage::VERTEX,
-		"./shaders/phong.vert");
-	m_phongShader.loadShader(aie::eShaderStage::FRAGMENT,
-		"./shaders/phong.frag");
-	if (m_phongShader.link() == false)
+	// Create Objects
+	// Grid Logic
+	if (m_gridTexture.load("./textures/numbered_grid.tga") == false)
 	{
-		printf("Phong Shader had an error: %s\n", m_phongShader.getLastError());
+		printf("Failed to load: numbered_grid.tga\n");
 		return false;
 	}
 #pragma endregion
+
+#pragma region Soulspear
+	if (m_spearMesh.load("./soulspear/soulspear.obj", true, true) == false)
+	{
+		printf("Soulspear Mesh has had an error!\n");
+		return false;
+	}
+
+	m_spearTransform = {
+		1.f,  0,	0,	  0,
+		0,	  1.f, 0,	  0,
+		0,	  0,	1.f,  0,
+		0,	  0,	0,    1
+	};
+#pragma endregion
+
+#pragma region NormalMapShader
+	m_normalMapShaders.loadShader(aie::eShaderStage::VERTEX,
+		"./shaders/normalMap.vert");
+	m_normalMapShaders.loadShader(aie::eShaderStage::FRAGMENT,
+		"./shaders/normalMap.frag");
+	if (m_normalMapShaders.link() == false)
+	{
+		printf("Normal Map Shader had an error: %s\n",
+			m_normalMapShaders.getLastError());
+		return false;
+	}
+
 	
+#pragma endregion
 	return true;
 }
 
@@ -317,13 +394,20 @@ void GraphicsProjectApp::DrawShaderAndMeshes(glm::mat4 a_projectionMatrix, glm::
 	auto pvm = a_projectionMatrix * a_viewMatrix * glm::mat4(0);
 
 #pragma region Quad
-	// Bind the shader
-	m_simpleShader.bind();
+	//// Bind the shader
+	//m_textureShader.bind();
 
-	// Bind the transform of the mesh
-	pvm = a_projectionMatrix * a_viewMatrix * m_quadTransform; // PVM = Projection View Matrix
-	m_simpleShader.bindUniform("ProjectionViewModel", pvm);
+	//// Bind the transform of the mesh
+	//pvm = a_projectionMatrix * a_viewMatrix * m_quadTransform; // PVM = Projection View Matrix
+	//m_textureShader.bindUniform("ProjectionViewModel", pvm);
 
+	//// Bind the texture to a location of your choice (0)
+	//m_textureShader.bindUniform("diffuseTexture", 0);
+
+	//// Bind the texture to the specified location
+	//m_gridTexture.bind(0);
+
+	//// Draw the quad...
 	//m_quadMesh.Draw();
 #pragma endregion
 	
@@ -380,22 +464,104 @@ void GraphicsProjectApp::DrawShaderAndMeshes(glm::mat4 a_projectionMatrix, glm::
 	m_phongShader.bindUniform("LightDirection", m_light.direction);
 
 	// Bind the PVM
-	pvm = a_projectionMatrix * a_viewMatrix * m_bunnyTransform;
-	pvm = a_projectionMatrix * a_viewMatrix * m_dragonTransform;
-	pvm = a_projectionMatrix * a_viewMatrix * m_buddhaTransform;
-	pvm = a_projectionMatrix * a_viewMatrix * m_lucyTransform;
+	//pvm = a_projectionMatrix * a_viewMatrix * m_bunnyTransform;
+	//pvm = a_projectionMatrix * a_viewMatrix * m_dragonTransform;
+	//pvm = a_projectionMatrix * a_viewMatrix * m_buddhaTransform;
+	//pvm = a_projectionMatrix * a_viewMatrix * m_lucyTransform;
+	//pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
 	m_phongShader.bindUniform("ProjectionViewModel", pvm);
 
 	// Bind the lighting transforms
-	m_phongShader.bindUniform("ModelMatrix", m_bunnyTransform);
-	m_phongShader.bindUniform("ModelMatrix", m_dragonTransform);
-	m_phongShader.bindUniform("ModelMatrix", m_dragonTransform);
-	m_phongShader.bindUniform("ModelMatrix", m_lucyTransform);
+	//m_phongShader.bindUniform("ModelMatrix", m_bunnyTransform);
+	//m_phongShader.bindUniform("ModelMatrix", m_dragonTransform);
+	//m_phongShader.bindUniform("ModelMatrix", m_dragonTransform);
+	//m_phongShader.bindUniform("ModelMatrix", m_lucyTransform);
+	//m_phongShader.bindUniform("ModelMatrix", m_infinityTransform);
 	
 	//m_bunnyMesh.draw();
 	//m_dragonMesh.draw();
 	//m_buddhaMesh.draw();
-	m_lucyMesh.draw();
+	//m_lucyMesh.draw();
+	//m_infinityMesh.draw();
+#pragma endregion
+
+#pragma region Soulspear
+	//=== Texture ===
+	m_textureShader.bind();
+	
+	// bind transform
+	pvm = a_projectionMatrix * a_viewMatrix * m_spearTransform;
+	m_textureShader.bindUniform("ProjectionViewModel", pvm);
+	
+	//=== Normal Map ===
+	//m_normalMapShaders.bind();
+
+	//// Bind the transform
+	//pvm = a_projectionMatrix * a_viewMatrix * m_spearTransform;
+	//m_normalMapShaders.bindUniform("ProjectionViewModel", pvm);
+	//m_normalMapShaders.bindUniform("CameraPosition", m_camera.GetPosition());
+	//m_normalMapShaders.bindUniform("AmbientColor", m_ambientLight);
+	//m_normalMapShaders.bindUniform("LightColor", m_light.color);
+	//m_normalMapShaders.bindUniform("LightDirection", m_light.direction);
+	//m_normalMapShaders.bindUniform("ModelMatrix", m_spearTransform);
+
+	//=== Phong shader ===
+	//// bind phong shader program
+	//m_phongShader.bind();
+
+	//// bind light
+	//m_phongShader.bindUniform("LightDirection", m_light.direction);
+
+	//// bind transform
+	//pvm = a_projectionMatrix * a_viewMatrix * m_spearTransform;
+	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
+
+	//// bind transforms for lighting
+	//m_phongShader.bindUniform("ModelMatrix", m_spearTransform);
+
+	// Draw the mesh
+	//m_spearMesh.draw();
+#pragma endregion
+
+#pragma region InfinityBlade
+	//=== Texture ===
+	//m_textureShader.bind();
+
+	//// bind transform
+	//pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
+	//m_textureShader.bindUniform("ProjectionViewModel", pvm);
+	//m_textureShader.bindUniform("diffuseTexture", 0);
+	//m_bladeTexture.bind(0);
+	
+	//=== Normal map shader ===
+	m_normalMapShaders.bind();
+
+	// Bind the transform
+	pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
+	m_normalMapShaders.bindUniform("ProjectionViewModel", pvm);
+
+	m_normalMapShaders.bindUniform("ModelMatrix", m_infinityTransform);
+	m_normalMapShaders.bindUniform("AmbientColor", m_ambientLight);
+	m_normalMapShaders.bindUniform("LightColor", m_light.color);
+	m_normalMapShaders.bindUniform("LightDirection", m_light.direction);
+
+	m_normalMapShaders.bindUniform("CameraPosition", m_camera.GetPosition());
+
+	////=== Phong shader ===
+	//// bind phong shader program
+	//m_phongShader.bind();
+	//
+	//// bind light
+	//m_phongShader.bindUniform("LightDirection", m_light.direction);
+	//
+	//// bind transform
+	//pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
+	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
+
+	//// bind transforms for lighting
+	//m_phongShader.bindUniform("ModelMatrix", m_infinityTransform);
+
+	m_infinityMesh.draw();
 #pragma endregion
 }
 
@@ -408,7 +574,8 @@ void GraphicsProjectApp::IMGUI_Logic()
 
 	ImGui::Begin("Lucy Transform Settings");
 	ImGui::DragFloat3("Lucy Position", &m_lucyPosition[0], 0.1f, -10.f, 10.f);
-	ImGui::DragFloat3("Lucy Rotation", &m_lucyRotation[0], 1.f, 0, 360.f);
+	ImGui::SliderFloat3("Lucy Rotation Axis", &m_lucyRotationAxis[0], -1.f, 1.f);
+	ImGui::DragFloat("Lucy Rotation Angle", &m_lucyRotationAngle, 1.f, 0, 360.f);
 	ImGui::DragFloat("Lucy Scale", &m_lucyScale, 0.1f, 0.f, 1.f);
 	ImGui::End();
 }

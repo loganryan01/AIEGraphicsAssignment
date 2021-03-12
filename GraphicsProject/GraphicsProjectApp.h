@@ -26,6 +26,9 @@ protected:
 	glm::mat4	m_viewMatrix;
 	glm::mat4	m_projectionMatrix;
 
+	aie::Texture	   m_gridTexture;
+	aie::Texture	   m_bladeTexture;
+
 	// === SHADER ===
 	aie::ShaderProgram m_simpleShader;
 	aie::ShaderProgram m_bunnyShader;
@@ -33,6 +36,8 @@ protected:
 	aie::ShaderProgram m_dragonShader;
 	aie::ShaderProgram m_buddhaShader;
 	aie::ShaderProgram m_lucyShader;
+	aie::ShaderProgram m_textureShader;
+	aie::ShaderProgram m_normalMapShaders;
 	// ==============
 	// Basic Plane
 	Mesh			   m_quadMesh;
@@ -50,8 +55,16 @@ protected:
 	aie::OBJMesh	   m_lucyMesh;
 	glm::mat4		   m_lucyTransform;
 	glm::vec3		   m_lucyPosition;
-	glm::vec3		   m_lucyRotation;
+	glm::vec3		   m_lucyRotationAxis;
+	float              m_lucyRotationAngle;
 	float			   m_lucyScale;
+	// Create an Infinity Blade
+	aie::OBJMesh	   m_infinityMesh;
+	glm::mat4		   m_infinityTransform;
+
+	// Create a Soulspear
+	aie::OBJMesh	   m_spearMesh;
+	glm::mat4		   m_spearTransform;
 
 	struct Light {
 		glm::vec3 direction;
