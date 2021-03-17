@@ -58,9 +58,9 @@ protected:
 	glm::vec3		   m_lucyRotationAxis;
 	float              m_lucyRotationAngle;
 	float			   m_lucyScale;
-	// Create an Infinity Blade
-	aie::OBJMesh	   m_infinityMesh;
-	glm::mat4		   m_infinityTransform;
+	// Create an Object
+	aie::OBJMesh	   m_gunMesh;
+	glm::mat4		   m_gunTransform;
 
 	// Create a Soulspear
 	aie::OBJMesh	   m_spearMesh;

@@ -194,6 +194,21 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic()
 			return false;
 		}
 	#pragma endregion
+
+	#pragma region NormalMapShader
+		m_normalMapShaders.loadShader(aie::eShaderStage::VERTEX,
+			"./shaders/normalMap.vert");
+		m_normalMapShaders.loadShader(aie::eShaderStage::FRAGMENT,
+			"./shaders/normalMap.frag");
+		if (m_normalMapShaders.link() == false)
+		{
+			printf("Normal Map Shader had an error: %s\n",
+				m_normalMapShaders.getLastError());
+			return false;
+		}
+
+
+	#pragma endregion
 #pragma endregion
 
 #pragma region MeshLogic
@@ -274,22 +289,22 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic()
 		};
 	#pragma endregion
 
-	#pragma region InfinityBlade
-		if (m_infinityMesh.load("./infinityblade/infinityblade.obj", true, true) == false)
+	#pragma region Gun
+		if (m_gunMesh.load("./gun/scifigun.obj", true) == false)
 		{
-			printf("Infinity Blade Mesh Failed!\n");
+			printf("Gun Mesh Failed!\n");
 		}
 
-		if (m_bladeTexture.load("./infinityblade/lambert1_albedo.tga") == false)
+		/*if (m_bladeTexture.load("./infinityblade/lambert1_albedo.tga") == false)
 		{
 			printf("Failed to load: lambert1_albedo.tga\n");
 			return false;
-		}
+		}*/
 
-		m_infinityTransform = {
-			0.5f, 0,	0,	  0,
-			0,	  0.5f, 0,	  0,
-			0,	  0,	0.5f, 0,
+		m_gunTransform = {
+			0.1f, 0,	0,	  0,
+			0,	  0.1f, 0,	  0,
+			0,	  0,	0.1f, 0,
 			0,	  0,	0,    1
 		};
 	#pragma endregion
@@ -346,8 +361,6 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic()
 #pragma endregion
 	
 #pragma region TextureShader
-	
-
 	// Create Objects
 	// Grid Logic
 	if (m_gridTexture.load("./textures/numbered_grid.tga") == false)
@@ -372,20 +385,7 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic()
 	};
 #pragma endregion
 
-#pragma region NormalMapShader
-	m_normalMapShaders.loadShader(aie::eShaderStage::VERTEX,
-		"./shaders/normalMap.vert");
-	m_normalMapShaders.loadShader(aie::eShaderStage::FRAGMENT,
-		"./shaders/normalMap.frag");
-	if (m_normalMapShaders.link() == false)
-	{
-		printf("Normal Map Shader had an error: %s\n",
-			m_normalMapShaders.getLastError());
-		return false;
-	}
 
-	
-#pragma endregion
 	return true;
 }
 
@@ -487,11 +487,11 @@ void GraphicsProjectApp::DrawShaderAndMeshes(glm::mat4 a_projectionMatrix, glm::
 
 #pragma region Soulspear
 	//=== Texture ===
-	m_textureShader.bind();
-	
-	// bind transform
-	pvm = a_projectionMatrix * a_viewMatrix * m_spearTransform;
-	m_textureShader.bindUniform("ProjectionViewModel", pvm);
+	//m_textureShader.bind();
+	//
+	//// bind transform
+	//pvm = a_projectionMatrix * a_viewMatrix * m_spearTransform;
+	//m_textureShader.bindUniform("ProjectionViewModel", pvm);
 	
 	//=== Normal Map ===
 	//m_normalMapShaders.bind();
@@ -519,49 +519,42 @@ void GraphicsProjectApp::DrawShaderAndMeshes(glm::mat4 a_projectionMatrix, glm::
 	//// bind transforms for lighting
 	//m_phongShader.bindUniform("ModelMatrix", m_spearTransform);
 
+	//=== Draw ===
 	// Draw the mesh
 	//m_spearMesh.draw();
 #pragma endregion
 
-#pragma region InfinityBlade
-	//=== Texture ===
-	//m_textureShader.bind();
-
-	//// bind transform
-	//pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
-	//m_textureShader.bindUniform("ProjectionViewModel", pvm);
-	//m_textureShader.bindUniform("diffuseTexture", 0);
-	//m_bladeTexture.bind(0);
-	
+#pragma region Thanos
 	//=== Normal map shader ===
 	m_normalMapShaders.bind();
 
 	// Bind the transform
-	pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
+	pvm = a_projectionMatrix * a_viewMatrix * m_gunTransform;
 	m_normalMapShaders.bindUniform("ProjectionViewModel", pvm);
-
-	m_normalMapShaders.bindUniform("ModelMatrix", m_infinityTransform);
+	m_normalMapShaders.bindUniform("CameraPosition", m_camera.GetPosition());
 	m_normalMapShaders.bindUniform("AmbientColor", m_ambientLight);
 	m_normalMapShaders.bindUniform("LightColor", m_light.color);
 	m_normalMapShaders.bindUniform("LightDirection", m_light.direction);
+	m_normalMapShaders.bindUniform("ModelMatrix", m_gunTransform);
 
-	m_normalMapShaders.bindUniform("CameraPosition", m_camera.GetPosition());
+	m_gunMesh.draw();
+#pragma endregion
 
-	////=== Phong shader ===
-	//// bind phong shader program
-	//m_phongShader.bind();
-	//
-	//// bind light
-	//m_phongShader.bindUniform("LightDirection", m_light.direction);
-	//
-	//// bind transform
-	//pvm = a_projectionMatrix * a_viewMatrix * m_infinityTransform;
-	//m_phongShader.bindUniform("ProjectionViewModel", pvm);
+#pragma region Raidriar
+	//m_normalMapShaders.bind();
 
-	//// bind transforms for lighting
-	//m_phongShader.bindUniform("ModelMatrix", m_infinityTransform);
+	//// Bind the transform
+	//pvm = a_projectionMatrix * a_viewMatrix * m_godKingTransform;
+	//m_normalMapShaders.bindUniform("ProjectionViewModel", pvm);
 
-	m_infinityMesh.draw();
+	//m_normalMapShaders.bindUniform("ModelMatrix", m_godKingTransform);
+	//m_normalMapShaders.bindUniform("AmbientColor", m_ambientLight);
+	//m_normalMapShaders.bindUniform("LightColor", m_light.color);
+	//m_normalMapShaders.bindUniform("LightDirection", m_light.direction);
+
+	//m_normalMapShaders.bindUniform("CameraPosition", m_camera.GetPosition());
+
+	//m_godKingMesh.draw();
 #pragma endregion
 }
 
