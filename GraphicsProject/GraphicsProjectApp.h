@@ -7,6 +7,8 @@
 #include "OBJMesh.h"
 #include "Camera.h"
 
+#include "Scene.h"
+
 class GraphicsProjectApp : public aie::Application {
 public:
 
@@ -27,57 +29,27 @@ protected:
 	glm::mat4	m_projectionMatrix;
 
 	aie::Texture	   m_gridTexture;
-	aie::Texture	   m_bladeTexture;
 
 	// === SHADER ===
-	aie::ShaderProgram m_simpleShader;
-	aie::ShaderProgram m_bunnyShader;
 	aie::ShaderProgram m_phongShader;
-	aie::ShaderProgram m_dragonShader;
-	aie::ShaderProgram m_buddhaShader;
-	aie::ShaderProgram m_lucyShader;
-	aie::ShaderProgram m_textureShader;
 	aie::ShaderProgram m_normalMapShaders;
 	// ==============
-	// Basic Plane
-	Mesh			   m_quadMesh;
-	glm::mat4		   m_quadTransform;
-	// Create a Bunny with a flat color
-	aie::OBJMesh	   m_bunnyMesh;
-	glm::mat4		   m_bunnyTransform;
+
 	// Create a Dragon
 	aie::OBJMesh	   m_dragonMesh;
-	glm::mat4		   m_dragonTransform;
-	// Create a Buddha
-	aie::OBJMesh	   m_buddhaMesh;
-	glm::mat4		   m_buddhaTransform;
-	// Create a Lucy
-	aie::OBJMesh	   m_lucyMesh;
-	glm::mat4		   m_lucyTransform;
-	glm::vec3		   m_lucyPosition;
-	glm::vec3		   m_lucyRotationAxis;
-	float              m_lucyRotationAngle;
-	float			   m_lucyScale;
+	glm::vec3		   m_dragonPosition;
+	glm::vec3		   m_dragonRotation;
+	glm::vec3		   m_dragonScale;
+
 	// Create an Object
 	aie::OBJMesh	   m_gunMesh;
-	glm::mat4		   m_gunTransform;
 
 	// Create a Soulspear
 	aie::OBJMesh	   m_spearMesh;
-	glm::mat4		   m_spearTransform;
 
-	struct Light {
-		glm::vec3 direction;
-		glm::vec3 color;
-	};
-
-	Light			   m_light;
-	glm::vec3		   m_ambientLight;
-
-	float			   m_value;
+	Scene*			   m_scene;
 
 public:
-	bool LoadShaderAndMeshLogic();
-	void DrawShaderAndMeshes(glm::mat4, glm::mat4);
+	bool LoadShaderAndMeshLogic(Light a_light);
 	void IMGUI_Logic();
 };
