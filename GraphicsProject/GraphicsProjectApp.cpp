@@ -9,6 +9,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/ext.hpp>
 #include <math.h>
+#include <vector>
+#include <string>
 
 #include "Scene.h"
 #include "Instance.h"
@@ -85,16 +87,24 @@ void GraphicsProjectApp::update(float deltaTime) {
 													 0));
 
 	// Control Model Transform
-	std::list<Instance*>::iterator it = m_scene->GetInstances.begin();
-	std::advance(it, 2);
-	
+	if (m_selectedItem >= 0)
+	{
+		std::vector<Instance*>::iterator it = m_scene->GetInstances().begin();
+		std::advance(it, m_selectedItem);
+		const char* modelName = m_scene->GetInstances()[m_selectedItem]->GetName();
+		aie::OBJMesh* modelMesh = m_scene->GetInstances()[m_selectedItem]->GetMesh();
+		aie::ShaderProgram* modelShader = m_scene->GetInstances()[m_selectedItem]->GetShader();
+		it = m_scene->GetInstances().erase(it);
 
-	 /*= 
-		glm::translate(glm::mat4(1), m_dragonPosition) *
-		glm::rotate(glm::mat4(1), glm::radians(m_dragonPosition.z), glm::vec3(0, 0, 1)) *
-		glm::rotate(glm::mat4(1), glm::radians(m_dragonPosition.y), glm::vec3(0, 1, 0)) *
-		glm::rotate(glm::mat4(1), glm::radians(m_dragonPosition.x), glm::vec3(1, 0, 0)) *
-		glm::scale(glm::mat4(1), m_dragonScale);*/
+		Instance* newModel = new Instance(modelName,
+			m_position,
+			m_rotation,
+			glm::vec3(m_scale),
+			modelMesh,
+			modelShader);
+
+		m_scene->GetInstances().insert(it, newModel);
+	}
 
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -179,31 +189,32 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 		glm::vec3(0.25f));
 
 	// Shogun Knife (Imported Model)
-	m_scene->AddInstances(new Instance(glm::vec3(5, 0, 5),
+	m_scene->AddInstances(new Instance("Knife", 
+		glm::vec3(5, 0, 5),
 		glm::vec3(0, 0, 0),
 		glm::vec3(0.01f), 
 		&m_gunMesh, 
 		&m_normalMapShaders));
 
 	// Soul Spear
-	m_scene->AddInstances(new Instance(glm::vec3(5, 0, -5),
+	m_scene->AddInstances(new Instance("Spear", 
+		glm::vec3(5, 0, -5),
 		glm::vec3(0, 0, 0),
 		glm::vec3(1),
 		&m_spearMesh,
 		&m_normalMapShaders));
 
 	// Dragon (Stanford Model)
-	m_dragonPosition = glm::vec3(-5, 0, 5);
-	m_dragonRotation = glm::vec3(0, 0, 0);
-	m_dragonScale = glm::vec3(0.5f);
+	m_position = glm::vec3(-5, 0, 5);
+	m_rotation = glm::vec3(0, 0, 0);
+	m_scale = 0.5f;
 
-	m_scene->AddInstances(new Instance(m_dragonPosition,
-		m_dragonRotation,
-		m_dragonScale,
+	m_scene->AddInstances(new Instance("Dragon", 
+		m_position,
+		m_rotation,
+		glm::vec3(m_scale),
 		&m_dragonMesh,
 		&m_phongShader));
-
-
 
 	// Stationary Lights
 	// Add a red light on the left side
@@ -222,12 +233,51 @@ void GraphicsProjectApp::IMGUI_Logic()
 	ImGui::DragFloat3("Sunlight Color", &m_scene->GetLight().m_color[0], 0.1f, 0.f, 2.f);
 	ImGui::End();
 
-	ImGui::Begin("Model Transform Settings");
-	if (ImGui::CollapsingHeader("Dragon"))
+	std::vector<const char*> nameVector;
+	for (auto it = 0; it < m_scene->GetInstances().size(); it++)
 	{
-		ImGui::DragFloat3("Dragon Position", &m_dragonPosition[0], 0.1f, -10.f, 10.f);
-		ImGui::DragFloat3("Dragon Rotation", &m_dragonRotation[0], 0.1f, 0.f, 360.f);
-		ImGui::DragFloat3("Dragon Scale", &m_dragonScale[0], 0.1f, 0.f, 1.f);
+		nameVector.push_back(m_scene->GetInstances()[it]->GetName());
 	}
+
+	ImGui::Begin("Dropdown menu");
+	int i = 0;
+	for (std::vector<const char*>::iterator it = nameVector.begin(); it != nameVector.end(); ++it)
+	{
+		std::string itemid = "##" + std::to_string(i);
+		if (ImGui::Selectable(itemid.c_str(), i == m_selectedItem))
+		{
+			m_selectedItem = i;
+		}
+		ImGui::SameLine();
+		ImGui::Text("Item: ");
+		ImGui::SameLine();
+		ImGui::Text((*it));
+		i++;
+	}
+
+	if (m_selectedItem >= 0)
+	{
+		// Get the selected item position
+		m_position = m_scene->GetInstances()[m_selectedItem]->GetPosition();
+
+		// Get the selected item scale
+		m_scale = m_scene->GetInstances()[m_selectedItem]->GetScale().x;
+
+		// Get the selected item rotation
+		m_rotation = m_scene->GetInstances()[m_selectedItem]->GetEulerAngles();
+
+		for each (auto var in nameVector)
+		{
+			if (m_scene->GetInstances()[m_selectedItem]->GetName() == var)
+			{
+				ImGui::DragFloat3("Position", &m_position[0], 0.1f, -10.f, 10.f);
+				ImGui::DragFloat3("Rotation", &m_rotation[0], 0.1f, 0.f, 360.f);
+				ImGui::DragFloat("Scale", &m_scale, 0.1f, 0.f, 1.f);
+			}
+		}
+	}
+	
+	
+	
 	ImGui::End();
 }

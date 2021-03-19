@@ -37,9 +37,6 @@ protected:
 
 	// Create a Dragon
 	aie::OBJMesh	   m_dragonMesh;
-	glm::vec3		   m_dragonPosition;
-	glm::vec3		   m_dragonRotation;
-	glm::vec3		   m_dragonScale;
 
 	// Create an Object
 	aie::OBJMesh	   m_gunMesh;
@@ -48,6 +45,13 @@ protected:
 	aie::OBJMesh	   m_spearMesh;
 
 	Scene*			   m_scene;
+
+	int m_selectedItem = -1;
+	bool m_dragonSelected = false;
+
+	glm::vec3		   m_position;
+	glm::vec3		   m_rotation;
+	float			   m_scale;
 
 public:
 	bool LoadShaderAndMeshLogic(Light a_light);

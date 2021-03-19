@@ -39,7 +39,7 @@ public:
 	glm::vec2 GetWindowSize()	{ return m_windowSize; }
 	Light& GetLight()			{ return m_light; }
 	glm::vec3 GetAmbientLight() { return m_ambientLight; }
-	std::list<Instance*>& GetInstances() { return m_instances; }
+	std::vector<Instance*>& GetInstances() { return m_instances; }
 
 	int GetNumLights() { return (int)m_pointLights.size(); }
 	glm::vec3* GetPointLightPositions() { return &m_pointLightPositions[0]; }
@@ -54,7 +54,7 @@ protected:
 	Light					m_sunLight;
 	std::vector<Light>		m_pointLights;
 	glm::vec3				m_ambientLight;
-	std::list<Instance*>	m_instances;
+	std::vector<Instance*>	m_instances;
 
 	glm::vec3				m_pointLightPositions[MAX_LIGHTS];
 	glm::vec3				m_pointLightColors[MAX_LIGHTS];
