@@ -198,7 +198,7 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 
 	// Soul Spear
 	m_scene->AddInstances(new Instance("Spear", 
-		glm::vec3(5, 0, -5),
+		glm::vec3(-5, 0, -5),
 		glm::vec3(0, 0, 0),
 		glm::vec3(1),
 		&m_spearMesh,
@@ -228,9 +228,16 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 
 void GraphicsProjectApp::IMGUI_Logic()
 {
+	float maxLightColor = 255 * 50;
+	
 	ImGui::Begin("Scene Light Settings");
 	ImGui::DragFloat3("Sunlight Direction", &m_scene->GetLight().m_direction[0], 0.1f, -1.f, 1.f);
-	ImGui::DragFloat3("Sunlight Color", &m_scene->GetLight().m_color[0], 0.1f, 0.f, 2.f);
+	ImGui::ColorEdit3("Sunlight Color", &m_scene->GetLight().m_color[0]);
+	ImGui::DragFloat3("Light 1 Position", &m_scene->GetPointLights()[0].m_direction[0], 0.1f, -10.f, 10.f);
+	ImGui::DragFloat3("Light 1 Color", &m_scene->GetPointLights()[0].m_color[0], 1.f, 0.f, 255.f);
+	ImGui::DragFloat3("Light 2 Direction", &m_scene->GetPointLights()[1].m_direction[0], 0.1f, -10.f, 10.f);
+	ImGui::DragFloat3("Light 2 Color", &m_scene->GetPointLights()[1].m_color[0], 1.f, 0.f, 255.f);
+	ImGui::DragFloat3("Ambient Light", &m_scene->GetAmbientLight()[0], 0.25f, -1.f, 1.f);
 	ImGui::End();
 
 	std::vector<const char*> nameVector;

@@ -38,7 +38,7 @@ public:
 	Camera* GetCamera()			{ return m_camera; }
 	glm::vec2 GetWindowSize()	{ return m_windowSize; }
 	Light& GetLight()			{ return m_light; }
-	glm::vec3 GetAmbientLight() { return m_ambientLight; }
+	glm::vec3& GetAmbientLight() { return m_ambientLight; }
 	std::vector<Instance*>& GetInstances() { return m_instances; }
 
 	int GetNumLights() { return (int)m_pointLights.size(); }
@@ -51,7 +51,6 @@ protected:
 	Camera*					m_camera;
 	glm::vec2				m_windowSize;
 	Light					m_light;
-	Light					m_sunLight;
 	std::vector<Light>		m_pointLights;
 	glm::vec3				m_ambientLight;
 	std::vector<Instance*>	m_instances;
