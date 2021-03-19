@@ -2,11 +2,12 @@
 #include <glm/ext.hpp>
 #include <Input.h>
 
-Camera::Camera()
+Camera::Camera(glm::vec3 a_position, float a_theta, float a_phi, bool a_stationary)
 {
-	m_position = glm::vec3(-10, 2, 0);
-	m_theta = 0;
-	m_phi = 0;
+	m_position = a_position;
+	m_theta = a_theta;
+	m_phi = a_phi;
+	m_stationary = a_stationary;
 }
 
 void Camera::Update(float a_deltaTime)
@@ -21,36 +22,40 @@ void Camera::Update(float a_deltaTime)
 	glm::vec3 right(-glm::sin(thetaR), 0, glm::cos(thetaR));
 	glm::vec3 up(0, 1, 0);
 
-#pragma region InputSettings
-	if (input->isKeyDown(aie::INPUT_KEY_X))
-		m_position += up * a_deltaTime;
-	if (input->isKeyDown(aie::INPUT_KEY_Z))
-		m_position -= up * a_deltaTime;
-	if (input->isKeyDown(aie::INPUT_KEY_A))
-		m_position -= right * a_deltaTime;
-	if (input->isKeyDown(aie::INPUT_KEY_D))
-		m_position += right * a_deltaTime;
-	if (input->isKeyDown(aie::INPUT_KEY_W))
-		m_position += forward * a_deltaTime;
-	if (input->isKeyDown(aie::INPUT_KEY_S))
-		m_position -= forward * a_deltaTime;
-#pragma endregion
-
-	// Get the current position of the mouse coordinates
-	float mX = input->getMouseX();
-	float mY = input->getMouseY();
-	const float turnSpeed = glm::radians(180.f);
-
-	// If the right button is down, increment the theta and phi
-	if (input->isMouseButtonDown(aie::INPUT_MOUSE_BUTTON_RIGHT))
+	if (m_stationary == false)
 	{
-		m_theta += turnSpeed * (mX - m_lastMouseX) * a_deltaTime;
-		m_phi -= turnSpeed * (mY - m_lastMouseY) * a_deltaTime;
+		#pragma region InputSettings
+			if (input->isKeyDown(aie::INPUT_KEY_X))
+				m_position += up * a_deltaTime;
+			if (input->isKeyDown(aie::INPUT_KEY_Z))
+				m_position -= up * a_deltaTime;
+			if (input->isKeyDown(aie::INPUT_KEY_A))
+				m_position -= right * a_deltaTime;
+			if (input->isKeyDown(aie::INPUT_KEY_D))
+				m_position += right * a_deltaTime;
+			if (input->isKeyDown(aie::INPUT_KEY_W))
+				m_position += forward * a_deltaTime;
+			if (input->isKeyDown(aie::INPUT_KEY_S))
+				m_position -= forward * a_deltaTime;
+		#pragma endregion
+
+		// Get the current position of the mouse coordinates
+		float mX = input->getMouseX();
+		float mY = input->getMouseY();
+		const float turnSpeed = glm::radians(180.f);
+
+		// If the right button is down, increment the theta and phi
+		if (input->isMouseButtonDown(aie::INPUT_MOUSE_BUTTON_RIGHT))
+		{
+			m_theta += turnSpeed * (mX - m_lastMouseX) * a_deltaTime;
+			m_phi -= turnSpeed * (mY - m_lastMouseY) * a_deltaTime;
+		}
+
+		// Now store the frames last values for the next
+		m_lastMouseX = mX;
+		m_lastMouseY = mY;
 	}
 
-	// Now store the frames last values for the next
-	m_lastMouseX = mX;
-	m_lastMouseY = mY;
 }
 
 glm::mat4 Camera::GetViewMatrix()

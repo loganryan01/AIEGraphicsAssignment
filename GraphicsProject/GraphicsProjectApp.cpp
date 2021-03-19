@@ -23,11 +23,16 @@ using glm::vec4;
 using glm::mat4;
 using aie::Gizmos;
 
-GraphicsProjectApp::GraphicsProjectApp() {
-
+GraphicsProjectApp::GraphicsProjectApp() 
+{
+	m_flybyCamera = { glm::vec3(-10, 2, 0), 0, 0, false };
+	m_stationaryCameraX = { glm::vec3(15, 2, 0), 180, 0, true };
+	m_stationaryCameraY = { glm::vec3(0, 25, 0), 0, -90, true };
+	m_stationaryCameraZ = { glm::vec3(0, 2, 25), -90, 0, true };
 }
 
-GraphicsProjectApp::~GraphicsProjectApp() {
+GraphicsProjectApp::~GraphicsProjectApp() 
+{
 	Gizmos::destroy();
 	delete m_scene;
 }
@@ -47,6 +52,9 @@ bool GraphicsProjectApp::startup() {
 	Light light;
 	light.m_color = { 1, 1, 1 };
 	light.m_direction = { 1, -1, 1 };
+	m_camera = m_flybyCamera;
+
+	m_particles = new ParticleGenerator(&m_particleShader, &m_particleTexture, 500);
 
 	return LoadShaderAndMeshLogic(light);
 }
@@ -77,6 +85,7 @@ void GraphicsProjectApp::update(float deltaTime) {
 	Gizmos::addTransform(mat4(1));
 
 	m_camera.Update(deltaTime);
+	m_particles->Update(deltaTime, glm::vec3(1), glm::vec3(10), 2, glm::vec3(1));
 
 	IMGUI_Logic();
 
@@ -122,6 +131,7 @@ void GraphicsProjectApp::draw() {
 	glm::mat4 viewMatrix = m_scene->GetCamera()->GetViewMatrix();
 
 	m_scene->Draw();
+	m_particles->Draw(m_scene);
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 }
@@ -153,8 +163,26 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 				m_normalMapShaders.getLastError());
 			return false;
 		}
+	#pragma endregion
 
+	#pragma region Particles
+		m_particleShader.loadShader(aie::eShaderStage::VERTEX,
+			"./shaders/particle.vert");
+		m_particleShader.loadShader(aie::eShaderStage::FRAGMENT,
+			"./shaders/particle.frag");
+		if (m_particleShader.link() == false)
+		{
+			printf("Particle Shader had an error: %s\n",
+				m_particleShader.getLastError());
+			return false;
+		}
 
+		if (m_particleTexture.load("./textures/particle.png") == false)
+		{
+			printf("Failed to load texture!\n");
+		}
+		/*unsigned char texelData[4] = { 0, 255, 255, 0 };
+		m_particleTexture.create(2, 2, aie::Texture::RED, texelData);*/
 	#pragma endregion
 
 #pragma endregion
@@ -222,14 +250,12 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 	// Add a green light on the right side
 	m_scene->GetPointLights().push_back(Light(glm::vec3(-5, 3, 0), glm::vec3(0, 1, 0), 50));
 
-
 	return true;
 }
 
 void GraphicsProjectApp::IMGUI_Logic()
 {
-	float maxLightColor = 255 * 50;
-	
+	// Light settings
 	ImGui::Begin("Scene Light Settings");
 	ImGui::DragFloat3("Sunlight Direction", &m_scene->GetLight().m_direction[0], 0.1f, -1.f, 1.f);
 	ImGui::ColorEdit3("Sunlight Color", &m_scene->GetLight().m_color[0]);
@@ -240,13 +266,14 @@ void GraphicsProjectApp::IMGUI_Logic()
 	ImGui::DragFloat3("Ambient Light", &m_scene->GetAmbientLight()[0], 0.25f, -1.f, 1.f);
 	ImGui::End();
 
+	// Model settings
 	std::vector<const char*> nameVector;
 	for (auto it = 0; it < m_scene->GetInstances().size(); it++)
 	{
 		nameVector.push_back(m_scene->GetInstances()[it]->GetName());
 	}
 
-	ImGui::Begin("Dropdown menu");
+	ImGui::Begin("Model Transform Settings");
 	int i = 0;
 	for (std::vector<const char*>::iterator it = nameVector.begin(); it != nameVector.end(); ++it)
 	{
@@ -283,8 +310,25 @@ void GraphicsProjectApp::IMGUI_Logic()
 			}
 		}
 	}
+	ImGui::End();
 	
-	
-	
+	// Camera Controls
+	ImGui::Begin("Camera Settings");
+	if (ImGui::Button("Flyby"))
+	{
+		m_camera = m_flybyCamera;
+	}
+	if (ImGui::Button("Stationary X"))
+	{
+		m_camera = m_stationaryCameraX;
+	}
+	if (ImGui::Button("Stationary Y"))
+	{
+		m_camera = m_stationaryCameraY;
+	}
+	if (ImGui::Button("Stationary Z"))
+	{
+		m_camera = m_stationaryCameraZ;
+	}
 	ImGui::End();
 }
