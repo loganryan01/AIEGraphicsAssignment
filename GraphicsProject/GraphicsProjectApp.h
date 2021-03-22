@@ -6,9 +6,9 @@
 #include <glm/mat4x4.hpp>
 #include "OBJMesh.h"
 #include "Camera.h"
-#include "ParticleGenerator.h"
 
 #include "Scene.h"
+#include "ParticleEmitter.h"
 
 class GraphicsProjectApp : public aie::Application {
 public:
@@ -55,6 +55,9 @@ protected:
 
 	// Create a Soulspear
 	aie::OBJMesh	   m_spearMesh;
+
+	// Particle Emitter
+	ParticleEmitter* m_emitter;
 
 	Scene*			   m_scene;
 

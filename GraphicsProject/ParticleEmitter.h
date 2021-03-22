@@ -28,8 +28,11 @@ public:
 		float a_startSize, float a_endSize, const glm::vec4& a_startColour,
 		const glm::vec4& a_endColour);
 
+	glm::vec3 GetPosition() { return m_position; }
+
 	void emit();
 	void update(float a_deltaTime, const glm::mat4& a_cameraTransform);
+	void draw();
 
 	// more to come here!
 

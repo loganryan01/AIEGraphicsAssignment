@@ -167,9 +167,9 @@ void ParticleEmitter::update(float a_deltaTime, const glm::mat4& a_cameraTransfo
 			m_vertexData[quad * 4 + 3].colour = particle->colour;
 			
 			// create billboard transform
-			vec3 zAxis= glm::normalize(vec3(a_cameraTransform[3]) – particle->position);
-			vec3 xAxis= glm::cross(vec3(a_cameraTransform[1]), zAxis);
-			vec3 yAxis= glm::cross(zAxis, xAxis);
+			vec3 zAxis = glm::normalize(vec3(a_cameraTransform[3]) – particle->position);/* – particle->position;*/
+			vec3 xAxis = glm::cross(vec3(a_cameraTransform[1]), zAxis);
+			vec3 yAxis = glm::cross(zAxis, xAxis);
 			glm::mat4 billboard(vec4(xAxis, 0), 
 				vec4(yAxis,0),
 				vec4(zAxis,0),
@@ -190,4 +190,17 @@ void ParticleEmitter::update(float a_deltaTime, const glm::mat4& a_cameraTransfo
 			++quad;
 		}
 	}
+}
+
+void ParticleEmitter::draw()
+{
+	// sync the particle vertex buffer
+	// based on how many alive particles there are
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_firstDead * 4 *
+		sizeof(ParticleVertex), m_vertexData);
+
+	// draw particles
+	glBindVertexArray(m_vao);
+	glDrawElements(GL_TRIANGLES, m_firstDead * 6, GL_UNSIGNED_INT, 0);
 }

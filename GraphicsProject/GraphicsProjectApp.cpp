@@ -54,8 +54,6 @@ bool GraphicsProjectApp::startup() {
 	light.m_direction = { 1, -1, 1 };
 	m_camera = m_flybyCamera;
 
-	m_particles = new ParticleGenerator(&m_particleShader, &m_particleTexture, 500);
-
 	return LoadShaderAndMeshLogic(light);
 }
 
@@ -85,7 +83,6 @@ void GraphicsProjectApp::update(float deltaTime) {
 	Gizmos::addTransform(mat4(1));
 
 	m_camera.Update(deltaTime);
-	m_particles->Update(deltaTime, glm::vec3(1), glm::vec3(10), 2, glm::vec3(1));
 
 	IMGUI_Logic();
 
@@ -115,6 +112,8 @@ void GraphicsProjectApp::update(float deltaTime) {
 		m_scene->GetInstances().insert(it, newModel);
 	}
 
+	m_emitter->update(deltaTime, m_camera.GetProjectionMatrix(getWindowWidth(), (float)getWindowHeight()));
+
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
 
@@ -130,8 +129,20 @@ void GraphicsProjectApp::draw() {
 	glm::mat4 projectionMatrix = m_scene->GetCamera()->GetProjectionMatrix(getWindowWidth(), (float)getWindowHeight());
 	glm::mat4 viewMatrix = m_scene->GetCamera()->GetViewMatrix();
 
+	// === Draw Particle emitter ===
+	m_particleShader.bind();
+
+	// Create particle transform
+	glm::mat4 particleTransform;
+	particleTransform = glm::translate(glm::mat4(1), m_emitter->GetPosition());
+
+	// Bind particle transform
+	auto pvm = projectionMatrix * m_viewMatrix * particleTransform;
+	m_particleShader.bindUniform("ProjectionViewModel", pvm);
+
+	m_emitter->draw();
+
 	m_scene->Draw();
-	m_particles->Draw(m_scene);
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 }
@@ -176,13 +187,6 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 				m_particleShader.getLastError());
 			return false;
 		}
-
-		if (m_particleTexture.load("./textures/particle.png") == false)
-		{
-			printf("Failed to load texture!\n");
-		}
-		/*unsigned char texelData[4] = { 0, 255, 255, 0 };
-		m_particleTexture.create(2, 2, aie::Texture::RED, texelData);*/
 	#pragma endregion
 
 #pragma endregion
@@ -243,6 +247,15 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 		glm::vec3(m_scale),
 		&m_dragonMesh,
 		&m_phongShader));
+
+	// Particle Emitter
+
+	m_emitter = new ParticleEmitter();
+	m_emitter->initalise(1000, 500,
+		0.1f, 1.0f,
+		1, 5,
+		1, 0.1f,
+		glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
 
 	// Stationary Lights
 	// Add a red light on the left side
