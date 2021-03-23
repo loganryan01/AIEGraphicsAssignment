@@ -58,6 +58,9 @@ protected:
 
 	// Particle Emitter
 	ParticleEmitter* m_emitter;
+	glm::vec3 m_emitterPosition;
+	glm::vec4 m_emitterStartingColor;
+	glm::vec4 m_emitterEndColor;
 
 	Scene*			   m_scene;
 

@@ -29,6 +29,8 @@ public:
 		const glm::vec4& a_endColour);
 
 	glm::vec3 GetPosition() { return m_position; }
+	void SetStartingColor(glm::vec4 a_startingColor) { m_startColour = a_startingColor; }
+	void SetEndColor(glm::vec4 a_endColor) { m_endColour = a_endColor; }
 
 	void emit();
 	void update(float a_deltaTime, const glm::mat4& a_cameraTransform);

@@ -29,6 +29,8 @@ GraphicsProjectApp::GraphicsProjectApp()
 	m_stationaryCameraX = { glm::vec3(15, 2, 0), 180, 0, true };
 	m_stationaryCameraY = { glm::vec3(0, 25, 0), 0, -90, true };
 	m_stationaryCameraZ = { glm::vec3(0, 2, 25), -90, 0, true };
+
+	m_emitterPosition = glm::vec3(0);
 }
 
 GraphicsProjectApp::~GraphicsProjectApp() 
@@ -112,7 +114,12 @@ void GraphicsProjectApp::update(float deltaTime) {
 		m_scene->GetInstances().insert(it, newModel);
 	}
 
-	m_emitter->update(deltaTime, m_camera.GetProjectionMatrix(getWindowWidth(), (float)getWindowHeight()));
+	glm::mat4 cameraTransform = glm::translate(m_camera.GetPosition()) *
+		glm::rotate(glm::mat4(1), m_camera.GetTheta(), glm::vec3(0, 0, 1)) *
+		glm::rotate(glm::mat4(1), m_camera.GetPhi(), glm::vec3(0, 1, 0)) *
+		glm::rotate(glm::mat4(1), m_camera.GetTheta(), glm::vec3(1, 0, 0)) *
+		glm::scale(glm::mat4(1), glm::vec3(1));
+	m_emitter->update(deltaTime, cameraTransform);
 
 	// quit if we press escape
 	aie::Input* input = aie::Input::getInstance();
@@ -129,20 +136,33 @@ void GraphicsProjectApp::draw() {
 	glm::mat4 projectionMatrix = m_scene->GetCamera()->GetProjectionMatrix(getWindowWidth(), (float)getWindowHeight());
 	glm::mat4 viewMatrix = m_scene->GetCamera()->GetViewMatrix();
 
+	m_scene->Draw();
+
 	// === Draw Particle emitter ===
 	m_particleShader.bind();
 
 	// Create particle transform
-	glm::mat4 particleTransform;
-	particleTransform = glm::translate(glm::mat4(1), m_emitter->GetPosition());
+	// Get Euler angles from projection matrix
+	float xAngle = atan2f(projectionMatrix[3][1], projectionMatrix[3][2]);
+	float yAngle = acosf(projectionMatrix[3][3]);
+	float zAngle = atan2(projectionMatrix[1][3], projectionMatrix[2][3]);
+
+	// Build transform
+	glm::mat4 particleTransform = glm::translate(m_emitterPosition) *
+		glm::rotate(glm::mat4(1), zAngle, glm::vec3(0, 0, 1)) *
+		glm::rotate(glm::mat4(1), yAngle + 90.f, glm::vec3(0, 1, 0)) *
+		glm::rotate(glm::mat4(1), xAngle, glm::vec3(1, 0, 0)) *
+		glm::scale(glm::mat4(1), glm::vec3(1));
+
+	// Set Starting Color
+	m_emitter->SetStartingColor(m_emitterStartingColor);
+	m_emitter->SetEndColor(m_emitterEndColor);
 
 	// Bind particle transform
-	auto pvm = projectionMatrix * m_viewMatrix * particleTransform;
+	auto pvm = projectionMatrix * viewMatrix * particleTransform;
 	m_particleShader.bindUniform("ProjectionViewModel", pvm);
 
 	m_emitter->draw();
-
-	m_scene->Draw();
 
 	Gizmos::draw(projectionMatrix * viewMatrix);
 }
@@ -249,13 +269,14 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 		&m_phongShader));
 
 	// Particle Emitter
-
 	m_emitter = new ParticleEmitter();
 	m_emitter->initalise(1000, 500,
 		0.1f, 1.0f,
 		1, 5,
 		1, 0.1f,
 		glm::vec4(1, 0, 0, 1), glm::vec4(1, 1, 0, 1));
+	m_emitterStartingColor = glm::vec4(1, 0, 0, 1);
+	m_emitterEndColor = glm::vec4(1, 1, 0, 1);
 
 	// Stationary Lights
 	// Add a red light on the left side
@@ -343,5 +364,12 @@ void GraphicsProjectApp::IMGUI_Logic()
 	{
 		m_camera = m_stationaryCameraZ;
 	}
+	ImGui::End();
+
+	// Particle effects controls
+	ImGui::Begin("Particle Emitter");
+	ImGui::DragFloat3("Position", &m_emitterPosition[0], 0.1f, -10.f, 10.f);
+	ImGui::ColorEdit3("Starting Color", &m_emitterStartingColor[0]);
+	ImGui::ColorEdit3("Ending Color", &m_emitterEndColor[0]);
 	ImGui::End();
 }
