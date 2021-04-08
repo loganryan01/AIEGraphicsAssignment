@@ -195,9 +195,9 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 
 	#pragma region Phong
 		m_phongShader.loadShader(aie::eShaderStage::VERTEX,
-			"./shaders/phong.vert");
+			"./bin/shaders/phong.vert");
 		m_phongShader.loadShader(aie::eShaderStage::FRAGMENT,
-			"./shaders/phong.frag");
+			"./bin/shaders/phong.frag");
 		if (m_phongShader.link() == false)
 		{
 			printf("Phong Shader had an error: %s\n", m_phongShader.getLastError());
@@ -207,9 +207,9 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 
 	#pragma region NormalMapShader
 		m_normalMapShaders.loadShader(aie::eShaderStage::VERTEX,
-			"./shaders/normalMap.vert");
+			"./bin/shaders/normalMap.vert");
 		m_normalMapShaders.loadShader(aie::eShaderStage::FRAGMENT,
-			"./shaders/normalMap.frag");
+			"./bin/shaders/normalMap.frag");
 		if (m_normalMapShaders.link() == false)
 		{
 			printf("Normal Map Shader had an error: %s\n",
@@ -220,9 +220,9 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 
 	#pragma region Particles
 		m_particleShader.loadShader(aie::eShaderStage::VERTEX,
-			"./shaders/particle.vert");
+			"./bin/shaders/particle.vert");
 		m_particleShader.loadShader(aie::eShaderStage::FRAGMENT,
-			"./shaders/particle.frag");
+			"./bin/shaders/particle.frag");
 		if (m_particleShader.link() == false)
 		{
 			printf("Particle Shader had an error: %s\n",
@@ -236,14 +236,14 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 #pragma region MeshLogic
 
 	#pragma region Dragon
-		if (m_dragonMesh.load("./stanford/dragon.obj") == false)
+		if (m_dragonMesh.load("./bin/stanford/dragon.obj") == false)
 		{
 			printf("Dragon Mesh Failed!\n");
 		}
 	#pragma endregion
 
 	#pragma region Soulspear
-		if (m_spearMesh.load("./soulspear/soulspear.obj", true, true) == false)
+		if (m_spearMesh.load("./bin/soulspear/soulspear.obj", true, true) == false)
 		{
 			printf("Soulspear Mesh has had an error!\n");
 			return false;
@@ -251,7 +251,7 @@ bool GraphicsProjectApp::LoadShaderAndMeshLogic(Light a_light)
 	#pragma endregion
 
 	#pragma region ShogunKnife
-		if (m_gunMesh.load("./knife/model.obj", true, true) == false)
+		if (m_gunMesh.load("./bin/knife/model.obj", true, true) == false)
 		{
 			printf("Gun Mesh Failed!\n");
 		}
