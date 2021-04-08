@@ -1,3 +1,11 @@
+/*----------------------------------
+	File Name: ParticleEmitter.cpp
+	Purpose: Create particle emitter
+	Author: Logan Ryan
+	Modified: 8 April 2021
+------------------------------------
+	Copyright 2021 Logan Ryan
+----------------------------------*/
 #include "ParticleEmitter.h"
 #include <gl_core_4_4.h>
 

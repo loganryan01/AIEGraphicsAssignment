@@ -1,3 +1,11 @@
+/*----------------------------------
+	File Name: ParticleEmitter.h
+	Purpose: Create particle emitter
+	Author: Logan Ryan
+	Modified: 8 April 2021
+------------------------------------
+	Copyright 2021 Logan Ryan
+----------------------------------*/
 #pragma once
 #include <glm/glm.hpp>
 
@@ -20,23 +28,33 @@ struct ParticleVertex
 class ParticleEmitter
 {
 public:
+	// Constructor
 	ParticleEmitter(); 
+	// Destructor
 	virtual ~ParticleEmitter();
 
+	// Set up variables for emitter
 	void initalise(unsigned int a_maxParticles, unsigned int a_emitRate,
 		float a_lifetimeMin, float a_lifetimeMax, float a_velocityMin, float a_velocityMax,
 		float a_startSize, float a_endSize, const glm::vec4& a_startColour,
 		const glm::vec4& a_endColour);
 
+	// Get emitter position
 	glm::vec3 GetPosition() { return m_position; }
+
+	// Set starting color
 	void SetStartingColor(glm::vec4 a_startingColor) { m_startColour = a_startingColor; }
+	// Set ending color
 	void SetEndColor(glm::vec4 a_endColor) { m_endColour = a_endColor; }
 
+	// Emit particle
 	void emit();
-	void update(float a_deltaTime, const glm::mat4& a_cameraTransform);
-	void draw();
 
-	// more to come here!
+	// Update function
+	void update(float a_deltaTime, const glm::mat4& a_cameraTransform);
+
+	// Draw particles
+	void draw();
 
 protected:
 	Particle* m_particles;

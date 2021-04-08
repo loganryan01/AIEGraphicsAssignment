@@ -1,3 +1,11 @@
+/*--------------------------------
+	File Name: Camera.cpp
+	Purpose: Create camera objects
+	Author: Logan Ryan
+	Modified: 8 April 2021
+----------------------------------
+	Copyright 2021 Logan Ryan
+--------------------------------*/
 #include "Camera.h"
 #include <glm/ext.hpp>
 #include <Input.h>

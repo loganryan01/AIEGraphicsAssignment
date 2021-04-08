@@ -1,3 +1,11 @@
+/*---------------------------------------
+	File Name: Instance.cpp
+	Purpose: Create objects for the scene
+	Author: Logan Ryan
+	Modified: 8 April 2021
+-----------------------------------------
+	Copyright 2021 Logan Ryan
+---------------------------------------*/
 #include "Instance.h"
 
 #include "Scene.h"

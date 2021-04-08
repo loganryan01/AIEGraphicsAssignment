@@ -1,3 +1,11 @@
+/*----------------------------------
+	File Name: Mesh.cpp
+	Purpose: Create mesh for objects
+	Author: Logan Ryan
+	Modified: 8 April 2021
+------------------------------------
+	Copyright 2021 Logan Ryan
+----------------------------------*/
 #include <gl_core_4_4.h>
 #include "Mesh.h"
 

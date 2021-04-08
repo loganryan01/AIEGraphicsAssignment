@@ -1,3 +1,11 @@
+/*-----------------------------------
+	File Name: GraphicsProjectApp.cpp
+	Purpose: Launch App
+	Author: Logan Ryan
+	Modified: 8 April 2021
+-------------------------------------
+	Copyright 2021 Logan Ryan
+-----------------------------------*/
 #include "GraphicsProjectApp.h"
 #include "Gizmos.h"
 #include "Input.h"
@@ -25,16 +33,21 @@ using aie::Gizmos;
 
 GraphicsProjectApp::GraphicsProjectApp() 
 {
+	// Set up flyby camera starting position
 	m_flybyCamera = { glm::vec3(-10, 2, 0), 0, 0, false };
+
+	// Set up stationary cameras position and rotation
 	m_stationaryCameraX = { glm::vec3(15, 2, 0), 180, 0, true };
 	m_stationaryCameraY = { glm::vec3(0, 25, 0), 0, -90, true };
 	m_stationaryCameraZ = { glm::vec3(0, 2, 25), -90, 0, true };
 
+	// Set up emitter starting position
 	m_emitterPosition = glm::vec3(0);
 }
 
 GraphicsProjectApp::~GraphicsProjectApp() 
 {
+	// Destroy everything in the scene
 	Gizmos::destroy();
 	delete m_scene;
 }
@@ -51,9 +64,12 @@ bool GraphicsProjectApp::startup() {
 	m_projectionMatrix = glm::perspective(glm::pi<float>() * 0.25f, 
 		getWindowWidth() / (float)getWindowHeight(), 0.1f, 1000.0f);
 
+	// Set up dynamic light
 	Light light;
 	light.m_color = { 1, 1, 1 };
 	light.m_direction = { 1, -1, 1 };
+
+	// Starting camera should be flyby camera
 	m_camera = m_flybyCamera;
 
 	return LoadShaderAndMeshLogic(light);
@@ -61,6 +77,7 @@ bool GraphicsProjectApp::startup() {
 
 void GraphicsProjectApp::shutdown() {
 
+	// Destroy everything in the app
 	Gizmos::destroy();
 }
 
@@ -88,8 +105,10 @@ void GraphicsProjectApp::update(float deltaTime) {
 
 	IMGUI_Logic();
 
+	// Get delta time
 	float time = getTime();
 
+	// Change direction of the dynamic light
 	m_scene->GetLight().m_direction = glm::normalize(glm::vec3(glm::cos(time * 2),
 													 glm::sin(time * 2),
 													 0));
@@ -114,11 +133,14 @@ void GraphicsProjectApp::update(float deltaTime) {
 		m_scene->GetInstances().insert(it, newModel);
 	}
 
+	// Get camera transform for particle emitter
 	glm::mat4 cameraTransform = glm::translate(m_camera.GetPosition()) *
 		glm::rotate(glm::mat4(1), m_camera.GetTheta(), glm::vec3(0, 0, 1)) *
 		glm::rotate(glm::mat4(1), m_camera.GetPhi(), glm::vec3(0, 1, 0)) *
 		glm::rotate(glm::mat4(1), m_camera.GetTheta(), glm::vec3(1, 0, 0)) *
 		glm::scale(glm::mat4(1), glm::vec3(1));
+
+	// Update transform of emitter
 	m_emitter->update(deltaTime, cameraTransform);
 
 	// quit if we press escape

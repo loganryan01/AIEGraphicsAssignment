@@ -1,3 +1,11 @@
+/*-------------------------------------
+	File Name: Scene.h
+	Purpose: Create a scene for the app
+	Author: Logan Ryan
+	Modified: 8 April 2021
+---------------------------------------
+	Copyright 2021 Logan Ryan
+-------------------------------------*/
 #pragma once
 #include <list>
 #include <vector>
@@ -28,13 +36,18 @@ struct Light
 class Scene
 {
 public:
+	// Constructor
 	Scene(Camera* a_camera, glm::vec2 a_windowSize,
 		Light& a_light, glm::vec3 a_ambientLight);
+	// Destructor
 	~Scene();
 
+	// Add object to scene
 	void AddInstances(Instance* a_instances);
+	// Draw objects in scene
 	void Draw();
 
+	// Getters
 	Camera* GetCamera()			{ return m_camera; }
 	glm::vec2 GetWindowSize()	{ return m_windowSize; }
 	Light& GetLight()			{ return m_light; }

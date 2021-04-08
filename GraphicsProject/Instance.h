@@ -1,3 +1,11 @@
+/*---------------------------------------
+	File Name: Instance.h
+	Purpose: Create objects for the scene
+	Author: Logan Ryan
+	Modified: 8 April 2021
+-----------------------------------------
+	Copyright 2021 Logan Ryan
+---------------------------------------*/
 #pragma once
 #include <glm/glm.hpp>
 
@@ -13,14 +21,18 @@ namespace aie
 class Instance
 {
 public:
+	// Constructor with transform
 	Instance(const char* a_name, glm::mat4 a_transform, aie::OBJMesh* a_mesh,
 		aie::ShaderProgram* a_shader);
+	// Constructor with position, euler angles and scale
 	Instance(const char* a_name, glm::vec3 a_position, glm::vec3 a_eulerAngles,
 		glm::vec3 a_scale, aie::OBJMesh* a_mesh, 
 		aie::ShaderProgram* a_shader);
 
+	// Draw Function
 	void Draw(Scene* a_scene);
 
+	// Get Functions
 	const char* GetName() { return m_name; }
 	glm::mat4 GetTransform() { return m_transform; }
 	glm::vec3 GetPosition() { return m_position; }
@@ -29,6 +41,7 @@ public:
 	aie::OBJMesh* GetMesh() { return m_mesh; }
 	aie::ShaderProgram* GetShader() { return m_shader; }
 
+	// Create transform
 	static glm::mat4 MakeTransform(glm::vec3 a_position,
 		glm::vec3 a_eulerAngles, glm::vec3 a_scale);
 
